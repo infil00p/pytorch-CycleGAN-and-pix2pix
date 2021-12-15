@@ -199,14 +199,26 @@ class BaseModel(ABC):
                 net.load_state_dict(state_dict)
                 
                 net.eval()
-                
+                net.cuda()
+
                 batch_size = 1  
-                input_shape = (3, 512, 512)  # in my case its 512
+                input_shape = (3, 256, 256)  # in my case its 256
                 export_onnx_file = load_filename[:-4]+".onnx"  
                 save_path = os.path.join(self.save_dir, export_onnx_file)
 
                 dinput = torch.randn(batch_size, *input_shape).cuda()   #same with net: cuda()
                 torch.onnx.export(net, dinput, save_path)
+
+                torch.onnx.export(model,               # model being run
+                  dinput,                         # model input (or a tuple for multiple inputs)
+                  save_path,        # where to save the model (can be a file or file-like object)
+                  export_params=True,        # store the trained parameter weights inside the model file
+                  opset_version=10,          # the ONNX version to export the model to
+                  do_constant_folding=True,  # whether to execute constant folding for optimization
+                  input_names = ['input'],   # the model's input names
+                  output_names = ['output'], # the model's output names
+                  dynamic_axes={'input' : {0 : 'batch_size'},    # variable length axes
+                                'output' : {0 : 'batch_size'}})
 
                 print('The ONNX file ' + export_onnx_file + ' is saved at %s' % save_path)
 
