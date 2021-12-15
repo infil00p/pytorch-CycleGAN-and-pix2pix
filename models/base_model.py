@@ -3,7 +3,7 @@ import torch
 from collections import OrderedDict
 from abc import ABC, abstractmethod
 from . import networks
-
+from torch.utils.mobile_optimizer import optimize_for_mobile
 
 class BaseModel(ABC):
     """This class is an abstract base class (ABC) for models.
@@ -202,12 +202,15 @@ class BaseModel(ABC):
                 net.cuda()
 
                 batch_size = 1  
-                input_shape = (3, 256, 256)  # in my case its 256
+                dinput = torch.rand(batch_size, 3, 256, 256).cuda()
+                scriptedm = torch.jit.script(net)
+                scriptedm_optimized = optimize_for_mobile(scriptedm)
+                pytorch_mobile_file = load_filename[:-4]+".pt"
+                pytorch_save_path = os.path.join(self.save_dir, pytorch_mobile_file)
+                torch.jit.save(scriptedm_optimized, pytorch_save_path)
+
                 export_onnx_file = load_filename[:-4]+".onnx"  
                 save_path = os.path.join(self.save_dir, export_onnx_file)
-
-                dinput = torch.randn(batch_size, *input_shape).cuda()   #same with net: cuda()
-                torch.onnx.export(net, dinput, save_path)
 
                 torch.onnx.export(net,               # model being run
                   dinput,                         # model input (or a tuple for multiple inputs)
