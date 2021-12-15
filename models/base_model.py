@@ -209,7 +209,7 @@ class BaseModel(ABC):
                 dinput = torch.randn(batch_size, *input_shape).cuda()   #same with net: cuda()
                 torch.onnx.export(net, dinput, save_path)
 
-                torch.onnx.export(model,               # model being run
+                torch.onnx.export(net,               # model being run
                   dinput,                         # model input (or a tuple for multiple inputs)
                   save_path,        # where to save the model (can be a file or file-like object)
                   export_params=True,        # store the trained parameter weights inside the model file
